@@ -1,5 +1,5 @@
 import React from 'react';
-import './App.css';
+import './css/App.css';
 import { Routes } from './components/Routes';
 import { CreateWorkstation } from './components/CreateWorkstation';
 import { CreateObjective } from './components/CreateObjective';
