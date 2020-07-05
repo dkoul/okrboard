@@ -4,6 +4,8 @@ import { Formik, FormikProps } from 'formik';
 import { object, string, date } from 'yup';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useQuery } from 'react-query';
+import { getAllWorkstations } from '../api/workstation';
 
 interface ICreateObjective {
   objectiveTitle: string;
@@ -16,17 +18,19 @@ const formSchema = object({
   objectiveTitle: string().required('Objective title is required field'),
   description: string().required(),
   owner: string().required(),
-  endDate: date(),
+  endDate: date()
 });
 
 const initialValues: ICreateObjective = {
   objectiveTitle: '',
   description: '',
   owner: '',
-  endDate: new Date(),
+  endDate: new Date()
 };
 
 export function CreateObjective() {
+  const { isLoading, data, error } = useQuery('getAllWorkstations', getAllWorkstations);
+  console.log('getAllWorkstations', isLoading, data, error);
   const renderForms = (formikProps: FormikProps<ICreateObjective>) => {
     const { touched, errors, handleSubmit, handleChange, values, setFieldValue } = formikProps;
     return (
@@ -66,7 +70,7 @@ export function CreateObjective() {
           <DatePicker
             selected={values['endDate']}
             className="date-picker"
-            onChange={(date) => setFieldValue('endDate', date)}
+            onChange={date => setFieldValue('endDate', date)}
             dateFormat="yyyy, QQQ"
             showQuarterYearPicker
           />
@@ -84,7 +88,7 @@ export function CreateObjective() {
       <Row className="justify-content-md-center">
         <Col md={6}>
           <Formik validationSchema={formSchema} onSubmit={submitObjective} initialValues={initialValues}>
-            {(formik) => renderForms(formik)}
+            {formik => renderForms(formik)}
           </Formik>
         </Col>
       </Row>

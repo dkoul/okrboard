@@ -6,10 +6,11 @@ import { CreateObjective } from './components/CreateObjective';
 import { ObrBoards } from './components/ObrBoards';
 import { KeyResults } from './components/KeyResults';
 import { Route, Switch, Redirect } from 'react-router-dom';
+import { WorkstationContextProvider } from './context/WorkstationContext';
 
 function App() {
   return (
-    <>
+    <WorkstationContextProvider>
       <Routes />
       <main>
         <Switch>
@@ -20,7 +21,7 @@ function App() {
           <Redirect to={'/okr-board'} />
         </Switch>
       </main>
-    </>
+    </WorkstationContextProvider>
   );
 }
 
