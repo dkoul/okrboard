@@ -7,11 +7,9 @@ import * as serviceWorker from './serviceWorker';
 import { HashRouter, Route } from 'react-router-dom';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <HashRouter>
-      <Route exact={false} path="/" component={App} />
-    </HashRouter>
-  </React.StrictMode>,
+  <HashRouter>
+    <Route exact={false} path="/" component={App} />
+  </HashRouter>,
   document.getElementById('root')
 );
 

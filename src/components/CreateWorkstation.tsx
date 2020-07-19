@@ -4,6 +4,9 @@ import {Formik, FormikProps} from 'formik';
 import {object, string} from 'yup';
 import {useMutation} from 'react-query';
 import {addWorkstation} from '../api/workstation';
+import {
+    useHistory
+  } from "react-router-dom";
 
 interface ICreateWorkstation {
     name : string;
@@ -25,6 +28,7 @@ const initialValues : ICreateWorkstation = {
 
 export function CreateWorkstation() {
     const [submitWorkstation] = useMutation(addWorkstation, {});
+    const history = useHistory();
     const renderForms = (formikProps : FormikProps < ICreateWorkstation >) => {
         const {touched, errors, handleSubmit, handleChange, values} = formikProps;
         return (
@@ -64,6 +68,7 @@ export function CreateWorkstation() {
     };
     const submitWorkStation = (values : ICreateWorkstation, actions : any) => {
         console.log('submitWorlstation', values, actions);
+        history.push({ pathname: '/' })
         submitWorkstation({
             // id: Math.random() * 100,
             name: values.name
