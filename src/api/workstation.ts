@@ -2,12 +2,12 @@ import { getUri, postUri } from '../utils/fetch';
 
 const prefixUrl = 'http://abhiskum-rdu-2.usersys.redhat.com:8181/okr/api';
 
-export async function getAllWorkstations(): Promise<any> {
+export async function getAllDepartments(): Promise<any> {
   const uri = `${prefixUrl}/departments`;
   return await getUri<any>(uri);
 }
 
-export async function addWorkstation(payload): Promise<any> {
+export async function addDepartment(payload): Promise<any> {
   const uri = `${prefixUrl}/departments`;
   return await postUri<any>(uri, payload);
 }
@@ -30,4 +30,14 @@ export async function createKeyResult(payload): Promise<any> {
 export async function getKeyResult(): Promise<any> {
   const uri = `${prefixUrl}/keyresults`;
   return await getUri<any>(uri);
+}
+
+export async function getUsers(): Promise<any> {
+  const uri = `${prefixUrl}/users`;
+  return await getUri<any>(uri);
+}
+
+export async function createUsers(payload): Promise<any> {
+  const uri = `${prefixUrl}/users`;
+  return await postUri<any>(uri, payload);
 }

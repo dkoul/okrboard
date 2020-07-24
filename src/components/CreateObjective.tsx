@@ -1,21 +1,22 @@
 import React from 'react';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { Spinner, Form, Button, Container, Row, Col } from 'react-bootstrap';
 import { Formik, FormikProps } from 'formik';
 import { object, string, date } from 'yup';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useQuery, useMutation } from 'react-query';
-import { getAllWorkstations, createObjective } from '../api/workstation';
+import { getAllDepartments, createObjective, getUsers } from '../api/workstation';
 import Select from 'react-select';
-import map from 'lodash/map';
 import { ILabel } from '../models/shared';
+import { addSuccessMessage, addDangerMessage } from '../utils/alertUtil';
+import { find, map } from 'lodash';
 
 interface ICreateObjective {
   objectiveTitle: string;
   description: string;
-  owner: string;
   endDate: Date;
-  workstationName: ILabel;
+  departmentName: ILabel;
+  ownerName: ILabel;
 }
 
 const formSchema = object({
@@ -28,9 +29,13 @@ const formSchema = object({
 const initialValues: ICreateObjective = {
   objectiveTitle: '',
   description: '',
-  owner: '',
   endDate: new Date(),
-  workstationName: {
+  departmentName: {
+    label: '',
+    value: '',
+    key: ''
+  },
+  ownerName: {
     label: '',
     value: '',
     key: ''
@@ -38,22 +43,32 @@ const initialValues: ICreateObjective = {
 };
 
 export function CreateObjective() {
-  const { data } = useQuery('getAllWorkstations', getAllWorkstations);
-  const [sObjective] = useMutation(createObjective, {});
+  const departmentDetails = useQuery('getAllDepartments', getAllDepartments);
+  const userDetails = useQuery('getUsers', getUsers);
+  const [sObjective, { isLoading }] = useMutation(createObjective, {});
   const renderForms = (formikProps: FormikProps<ICreateObjective>) => {
     const { touched, errors, handleSubmit, handleChange, values, setFieldValue } = formikProps;
-    const workstationOptions = map(data, d => ({ value: d.id, label: d.name }));
-    console.log('values', values);
+    const departmentOptions = map(departmentDetails.data, d => ({ value: d.id, label: d.name }));
+    const usersOptions = map(userDetails.data, d => ({ value: d.id, label: `${d.firstName} ${d.lastName}` }));
+
     return (
       <form noValidate onSubmit={handleSubmit}>
         <Form.Group controlId="objectiveTitle">
-          <Form.Label>Workstation</Form.Label>
+          <Form.Label>Department</Form.Label>
           <Select
-            onChange={option => setFieldValue('workstationName', option)}
-            placeholder="select workstation"
-            name="workstationName"
-            value={values.workstationName}
-            options={workstationOptions}
+            onChange={option => setFieldValue('departmentName', option)}
+            placeholder="select Department"
+            name="departmentName"
+            value={values.departmentName}
+            options={departmentOptions}
+          />
+          <Form.Label>Owner</Form.Label>
+          <Select
+            onChange={option => setFieldValue('ownerName', option)}
+            placeholder="select Owner"
+            name="ownerName"
+            value={values.ownerName}
+            options={usersOptions}
           />
           <Form.Label>Objective Title</Form.Label>
           <Form.Control
@@ -75,16 +90,6 @@ export function CreateObjective() {
             value={values['description']}
           />
           <Form.Control.Feedback type="invalid">{errors['description']}</Form.Control.Feedback>
-          <Form.Label>Owner</Form.Label>
-          <Form.Control
-            onChange={handleChange}
-            name="owner"
-            isInvalid={touched['owner'] && !!errors['owner']}
-            type="text"
-            placeholder="Owner of the workstation"
-            value={values['owner']}
-          />
-          <Form.Control.Feedback type="invalid">{errors['owner']}</Form.Control.Feedback>
           <Form.Label>End Date</Form.Label>
           <DatePicker
             selected={values['endDate']}
@@ -95,34 +100,25 @@ export function CreateObjective() {
           />
           <Form.Control.Feedback type="invalid">{errors['endDate']}</Form.Control.Feedback>
         </Form.Group>
-        <Button type="submit">Create Objective</Button>
+        {isLoading && <Spinner animation="border" />}
+        {!isLoading && <Button type="submit">Create Objective</Button>}
       </form>
     );
   };
-  const submitObjective = (values: ICreateObjective, actions: any) => {
-    console.log('submitojective', values, actions);
-    sObjective({
-      department: {
-        id: values.workstationName.value,
-        name: values.workstationName.label
-      },
-      title: values.objectiveTitle,
-      startDate: '2020-07-18',
-      endDate: '2020-07-18',
-      description: values.description,
-      owner: {
-        id: 2,
-        firstName: 'first name',
-        lastName: 'last name',
-        departments: [
-          {
-            id: 1,
-            name: 'dummy department',
-            children: []
-          }
-        ]
-      }
-    });
+  const submitObjective = async (values: ICreateObjective, actions: any) => {
+    try {
+      await sObjective({
+        department: find(departmentDetails.data, d => d.id === values.departmentName.value),
+        owner: find(userDetails.data, d => d.id === values.ownerName.value),
+        title: values.objectiveTitle,
+        startDate: '2020-07-18',
+        endDate: '2020-07-18',
+        description: values.description
+      });
+      addSuccessMessage('Successfully created Objective.');
+    } catch (error) {
+      addDangerMessage('Error in creating objective.');
+    }
   };
   return (
     <Container className="mt-4">

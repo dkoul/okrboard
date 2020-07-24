@@ -6,7 +6,7 @@ import { ResultType } from './ResultType';
 import Select from 'react-select';
 import { ILabel } from '../models/shared';
 import { useQuery, useMutation } from 'react-query';
-import { getAllWorkstations, getObjectives, createKeyResult, getKeyResult } from '../api/workstation';
+import { getAllDepartments, getObjectives, createKeyResult } from '../api/workstation';
 import map from 'lodash/map';
 import { find } from 'lodash';
 
@@ -43,13 +43,10 @@ const initialValues: ICreateWorkstation = {
 };
 
 export function KeyResults() {
-  const workstation = useQuery('getAllWorkstations', getAllWorkstations);
+  const workstation = useQuery('getAllDepartments', getAllDepartments);
   const objective = useQuery('getAllObjective', getObjectives);
-  const keyResult = useQuery('getAllKeyResults', getKeyResult);
   const [createKResult] = useMutation(createKeyResult, {});
 
-  console.log('keyResult', keyResult.data);
-  console.log('objective', objective.data);
   const renderForms = (formikProps: FormikProps<ICreateWorkstation>) => {
     const { setFieldValue, touched, errors, handleSubmit, handleChange, values } = formikProps;
     const workstationOptions = map(workstation.data, d => ({ value: d.id, label: d.name }));
@@ -102,7 +99,6 @@ export function KeyResults() {
     );
   };
   const submitKeyResult = (values: ICreateWorkstation, actions: any) => {
-    console.log('submitWorlstation', values, actions);
     createKResult({
       department: find(workstation.data, d => d.id === values.workstationName.value),
       description: values.description,

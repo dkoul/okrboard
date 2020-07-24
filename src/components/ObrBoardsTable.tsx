@@ -1,44 +1,94 @@
 import React from 'react';
-import { useTable, useExpanded } from 'react-table';
+import { useTable, useExpanded, useBlockLayout, useResizeColumns, useGlobalFilter, useAsyncDebounce } from 'react-table';
 import { Table } from 'react-bootstrap';
+import FA from 'react-fontawesome';
 
-const data = [
-  { firstName: 'train', age: 20, subRows: [{ firstName: 'subtrain', age: 20_20 }] },
-  { firstName: 'train1', age: 30, subRows: [{ firstName: 'subtrain1', age: 30_30 }] }
-];
-
-export function ObrBoardsTable() {
+export interface IProps {
+  tableData: any;
+}
+function GlobalFilter({
+    preGlobalFilteredRows,
+    globalFilter,
+    setGlobalFilter,
+  }) {
+    const count = preGlobalFilteredRows.length
+    const [value, setValue] = React.useState(globalFilter)
+    const onChange = useAsyncDebounce(value => {
+      setGlobalFilter(value || undefined)
+    }, 200)
+  
+    return (
+      <span>
+        Search:{' '}
+        <input
+          value={value || ""}
+          onChange={e => {
+            setValue(e.target.value);
+            onChange(e.target.value);
+          }}
+          placeholder={`${count} records...`}
+          style={{
+            fontSize: '1.1rem',
+            border: '0',
+          }}
+        />
+      </span>
+    )
+  }
+export function ObrBoardsTable(props: IProps) {
+  const { tableData } = props;
+  const defaultColumn = React.useMemo(
+    () => ({
+      width: 250,
+      maxWidth: 450
+    }),
+    []
+  );
   const columns = React.useMemo(
     () => [
       {
-        // Build our expander column
-        id: 'expander', // Make sure it has an ID
+        id: 'expander',
+        width: 70,
         Header: ({ getToggleAllRowsExpandedProps, isAllRowsExpanded }) => (
-          <span {...getToggleAllRowsExpandedProps()}>{isAllRowsExpanded ? '👇' : '👉'}</span>
+          <span {...getToggleAllRowsExpandedProps()}>
+            {isAllRowsExpanded ? <FA className="ml-3" name="angle-down" /> : <FA className="ml-3" name="angle-right" />}
+          </span>
         ),
         Cell: ({ row }) =>
           row.canExpand ? (
             <span
               {...row.getToggleRowExpandedProps({
                 style: {
-                  // We can even use the row.depth property
-                  // and paddingLeft to indicate the depth
-                  // of the row
                   paddingLeft: `${row.depth * 2}rem`
                 }
               })}
             >
-              {row.isExpanded ? '👇' : '👉'}
+              {row.isExpanded ? <FA className="ml-3" name="angle-down" /> : <FA className="ml-3" name="angle-right" />}
             </span>
           ) : null
       },
       {
-        Header: 'Name',
-        accessor: 'firstName'
+        Header: 'Objective and Key Results',
+        accessor: 'title',
+        width: 400,
+        id: 'objective_key'
       },
       {
-        Header: 'Age',
-        accessor: 'age'
+        Header: 'Grade',
+        accessor: 'grade',
+        id: 'grade'
+      },
+      {
+        Header: 'Assignee',
+        id: 'assignee',
+        Cell: ({ row }) => (
+            <span>{`${row.original.owner.firstName} ${row.original.owner.lastName}`}</span>
+        )
+      },
+      {
+        Header: 'Status',
+        accessor: 'status',
+        id: 'status'
       }
     ],
     []
@@ -48,17 +98,29 @@ export function ObrBoardsTable() {
     getTableBodyProps,
     headerGroups,
     rows,
-    prepareRow
-    // state: { expanded }
+    prepareRow,
+    state,
+    preGlobalFilteredRows,
+    setGlobalFilter,
   } = useTable(
     {
       columns: columns,
-      data
+      data: tableData,
+      defaultColumn
     },
-    useExpanded // Use the useExpanded plugin hook
-  );
+    useBlockLayout,
+    useResizeColumns,
+    useGlobalFilter,
+    useExpanded
+  ) as any;
   return (
-    <Table bordered {...getTableProps()}>
+      <>
+      <GlobalFilter
+      preGlobalFilteredRows={preGlobalFilteredRows}
+      globalFilter={state.globalFilter}
+      setGlobalFilter={setGlobalFilter}
+    />
+    <Table size="sm" bordered {...getTableProps()}>
       <thead>
         {headerGroups.map(headerGroup => (
           <tr {...headerGroup.getHeaderGroupProps()}>
@@ -81,5 +143,6 @@ export function ObrBoardsTable() {
         })}
       </tbody>
     </Table>
+    </>
   );
 }
